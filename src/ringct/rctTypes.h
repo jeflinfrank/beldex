@@ -234,10 +234,47 @@ namespace rct {
       END_SERIALIZE()
     };
 
+    struct BulletproofPlus
+    {
+      rct::keyV V;
+      rct::key A, A1, B;
+      rct::key r1, s1, d1;
+      rct::keyV L, R;
+
+      BulletproofPlus() {}
+      BulletproofPlus(const rct::key &V, const rct::key &A, const rct::key &A1, const rct::key &B, const rct::key &r1, const rct::key &s1, const rct::key &d1, const rct::keyV &L, const rct::keyV &R):
+        V({V}), A(A), A1(A1), B(B), r1(r1), s1(s1), d1(d1), L(L), R(R) {}
+      BulletproofPlus(const rct::keyV &V, const rct::key &A, const rct::key &A1, const rct::key &B, const rct::key &r1, const rct::key &s1, const rct::key &d1, const rct::keyV &L, const rct::keyV &R):
+        V(V), A(A), A1(A1), B(B), r1(r1), s1(s1), d1(d1), L(L), R(R) {}
+
+      bool operator==(const BulletproofPlus &other) const { return V == other.V && A == other.A && A1 == other.A1 && B == other.B && r1 == other.r1 && s1 == other.s1 && d1 == other.d1 && L == other.L && R == other.R; }
+
+      BEGIN_SERIALIZE_OBJECT()
+        // Commitments aren't saved, they're restored via outPk
+        // FIELD(V)
+        FIELD(A)
+        FIELD(A1)
+        FIELD(B)
+        FIELD(r1)
+        FIELD(s1)
+        FIELD(d1)
+        FIELD(L)
+        FIELD(R)
+
+        if (L.empty() || L.size() != R.size())
+          throw std::runtime_error("Bad bulletproofplus serialization");
+      END_SERIALIZE()
+    };
+
     size_t n_bulletproof_amounts(const Bulletproof &proof);
     size_t n_bulletproof_max_amounts(const Bulletproof &proof);
     size_t n_bulletproof_amounts(const std::vector<Bulletproof> &proofs);
     size_t n_bulletproof_max_amounts(const std::vector<Bulletproof> &proofs);
+
+    size_t n_bulletproof_plus_amounts(const BulletproofPlus &proof);
+    size_t n_bulletproof_plus_max_amounts(const BulletproofPlus &proof);
+    size_t n_bulletproof_plus_amounts(const std::vector<BulletproofPlus> &proofs);
+    size_t n_bulletproof_plus_max_amounts(const std::vector<BulletproofPlus> &proofs);
 
     template <typename Archive, typename T>
     auto start_array(Archive& ar, std::string_view tag, std::vector<T>& v, size_t size) {
@@ -263,12 +300,13 @@ namespace rct {
       Bulletproof = 3,
       Bulletproof2 = 4,
       CLSAG = 5,
+      BulletproofPlus = 6,
     };
 
     inline bool is_rct_simple(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
     inline bool is_rct_bulletproof(RCTType type) { return tools::equals_any(type, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
     inline bool is_rct_borromean(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Full); }
-
+    inline bool is_rct_bulletproof_plus(RCTType type) {return tools::equals_any(type, RCTType::BulletproofPlus); }
     enum class RangeProofType : uint8_t { Borromean = 0, Bulletproof = 1, MultiOutputBulletproof = 2, PaddedBulletproof = 3 };
     struct RCTConfig {
       RangeProofType range_proof_type;
@@ -331,6 +369,7 @@ namespace rct {
     struct rctSigPrunable {
         std::vector<rangeSig> rangeSigs;
         std::vector<Bulletproof> bulletproofs;
+        std::vector<BulletproofPlus> bulletproofs_plus;
         std::vector<mgSig> MGs; // simple rct has N, full has 1
         std::vector<clsag> CLSAGs;
         keyV pseudoOuts; //C - for simple rct

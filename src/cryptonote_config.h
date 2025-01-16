@@ -193,6 +193,7 @@ constexpr uint64_t DIFFICULTY_BLOCKS_COUNT(bool before_hf16)
 #define HF_VERSION_POS                          cryptonote::network_version_17_POS
 #define HF_VERSION_CLSAG                        cryptonote::network_version_15_flash
 #define HF_VERSION_PROOF_BTENC                  cryptonote::network_version_18_bns
+#define HF_VERSION_BULLETPROOF_PLUS             cryptonote::network_version_20_bulletproof_plus
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        8
 
@@ -201,6 +202,7 @@ constexpr uint64_t DIFFICULTY_BLOCKS_COUNT(bool before_hf16)
 #define DEFAULT_TXPOOL_MAX_WEIGHT               648000000ull // 3 days at 300000, in bytes
 
 #define BULLETPROOF_MAX_OUTPUTS                 16
+#define BULLETPROOF_PLUS_MAX_OUTPUTS            16
 
 #define CRYPTONOTE_PRUNING_STRIPE_SIZE          4096 // the smaller, the smoother the increase
 #define CRYPTONOTE_PRUNING_LOG_STRIPES          3 // the higher, the more space saved
@@ -257,6 +259,8 @@ namespace config
   inline constexpr auto REACHABLE_MAX_FAILURE_VALIDITY = 5min; // If we don't hear any SS ping/belnet bchat test failures for more than this long then we start considering the MN as passing for the purpose of obligation testing until we get another test result.  This should be somewhat larger than SS/belnet's max re-test backoff (2min).
   // Hash domain separators
   inline constexpr std::string_view HASH_KEY_BULLETPROOF_EXPONENT = "bulletproof"sv;
+  inline constexpr std::string_view HASH_KEY_BULLETPROOF_PLUS_EXPONENT  = "bulletproof_plus"sv;
+  inline constexpr std::string_view HASH_KEY_BULLETPROOF_PLUS_TRANSCRIPT = "bulletproof_plus_transcript"sv;
   inline constexpr std::string_view HASH_KEY_RINGDB = "ringdsb\0"sv;
   inline constexpr std::string_view HASH_KEY_SUBADDRESS = "SubAddr\0"sv;
   inline constexpr unsigned char HASH_KEY_ENCRYPTED_PAYMENT_ID = 0x8d;
@@ -351,6 +355,7 @@ namespace cryptonote
     network_version_17_POS,
     network_version_18_bns,
     network_version_19,
+    network_version_20_bulletproof_plus,
 
     network_version_count,
   };
