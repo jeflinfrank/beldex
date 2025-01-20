@@ -40,8 +40,9 @@
 #include <stdlib.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include "misc_log_ex.h"
-#include "span.h"
+#include "epee/misc_log_ex.h"
+#include "epee/span.h"
+#include "common/varint.h"
 #include "cryptonote_config.h"
 extern "C"
 {
@@ -108,7 +109,8 @@ namespace rct
     // Use hashed values to produce indexed public generators
     static ge_p3 get_exponent(const rct::key &base, size_t idx)
     {
-        std::string hashed = std::string((const char*)base.bytes, sizeof(base)) + config::HASH_KEY_BULLETPROOF_PLUS_EXPONENT + tools::get_varint_data(idx);
+        static const std::string domain_separator(config::HASH_KEY_BULLETPROOF_PLUS_EXPONENT);
+        std::string hashed = std::string((const char*)base.bytes, sizeof(base)) + domain_separator + tools::get_varint_data(idx);
         rct::key generator;
         ge_p3 generator_p3;
         rct::hash_to_p3(generator_p3, rct::hash2rct(crypto::cn_fast_hash(hashed.data(), hashed.size())));
