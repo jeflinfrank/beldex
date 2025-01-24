@@ -3138,6 +3138,32 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     return false;
   }
 
+  // allow bulletproofs plus
+  if (hf_version < HF_VERSION_BULLETPROOF_PLUS) {
+    if (tx.version >= txversion::v4_tx_types && tx.is_transfer()) {
+      const bool bulletproof_plus = rct::is_rct_bulletproof_plus(tx.rct_signatures.type);
+      if (bulletproof_plus || !tx.rct_signatures.p.bulletproofs_plus.empty())
+      {
+        MERROR_VER("Bulletproofs plus are not allowed before v" << std::to_string(HF_VERSION_BULLETPROOF_PLUS));
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
+  // forbid bulletproofs
+  if (hf_version > HF_VERSION_BULLETPROOF_PLUS) {
+    if (tx.version >= txversion::v4_tx_types && tx.is_transfer()) {
+      const bool bulletproof = rct::is_rct_bulletproof(tx.rct_signatures.type);
+      if (bulletproof)
+      {
+        MERROR_VER("Bulletproof range proofs are not allowed after v" + std::to_string(HF_VERSION_BULLETPROOF_PLUS));
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 //------------------------------------------------------------------
@@ -3178,7 +3204,7 @@ bool Blockchain::expand_transaction_2(transaction &tx, const crypto::hash &tx_pr
       }
     }
   }
-  else if (tools::equals_any(rv.type, rct::RCTType::Simple, rct::RCTType::Bulletproof, rct::RCTType::Bulletproof2, rct::RCTType::CLSAG))
+  else if (tools::equals_any(rv.type, rct::RCTType::Simple, rct::RCTType::Bulletproof, rct::RCTType::Bulletproof2, rct::RCTType::CLSAG, rct::RCTType::BulletproofPlus))
   {
     CHECK_AND_ASSERT_MES(!pubkeys.empty() && !pubkeys[0].empty(), false, "empty pubkeys");
     rv.mixRing.resize(pubkeys.size());
@@ -3213,7 +3239,7 @@ bool Blockchain::expand_transaction_2(transaction &tx, const crypto::hash &tx_pr
       rv.p.MGs[n].II[0] = rct::ki2rct(var::get<txin_to_key>(tx.vin[n]).k_image);
     }
   }
-  else if (rv.type == rct::RCTType::CLSAG)
+  else if (rv.type == rct::RCTType::CLSAG || rv.type == rct::RCTType::BulletproofPlus)
   {
     if (!tx.pruned)
     {
@@ -3395,6 +3421,7 @@ if (tx.version >= cryptonote::txversion::v2_ringct)
     case rct::RCTType::Bulletproof:
     case rct::RCTType::Bulletproof2:
     case rct::RCTType::CLSAG:
+    case rct::RCTType::BulletproofPlus:
     {
       // check all this, either reconstructed (so should really pass), or not
       {
@@ -3430,7 +3457,7 @@ if (tx.version >= cryptonote::txversion::v2_ringct)
         }
       }
 
-      const size_t n_sigs = rv.type == rct::RCTType::CLSAG ? rv.p.CLSAGs.size() : rv.p.MGs.size();
+      const size_t n_sigs = rct::is_rct_clsag(rv.type) ? rv.p.CLSAGs.size() : rv.p.MGs.size();
       if (n_sigs != tx.vin.size())
       {
         MERROR_VER("Failed to check ringct signatures: mismatched MGs/vin sizes");
@@ -3439,7 +3466,7 @@ if (tx.version >= cryptonote::txversion::v2_ringct)
       for (size_t n = 0; n < tx.vin.size(); ++n)
       {
         bool error;
-        if (rv.type == rct::RCTType::CLSAG)
+        if (rct::is_rct_clsag(rv.type))
           error = memcmp(&var::get<txin_to_key>(tx.vin[n]).k_image, &rv.p.CLSAGs[n].I, 32);
         else
           error = rv.p.MGs[n].II.empty() || memcmp(&var::get<txin_to_key>(tx.vin[n]).k_image, &rv.p.MGs[n].II[0], 32);

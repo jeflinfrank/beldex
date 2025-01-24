@@ -497,7 +497,7 @@ namespace cryptonote
 
     // calculate deterministic CLSAG/MLSAG data size
     const size_t ring_size = var::get<cryptonote::txin_to_key>(tx.vin[0]).key_offsets.size();
-    if (tx.rct_signatures.type == rct::RCTType::CLSAG)
+    if (rct::is_rct_clsag(tx.rct_signatures.type))
       extra = tx.vin.size() * (ring_size + 2) * 32;
     else
       extra = tx.vin.size() * (ring_size * (1 + 1) * 32 + 32 /* cc */);

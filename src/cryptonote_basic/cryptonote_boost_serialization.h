@@ -346,7 +346,7 @@ namespace boost
     a & x.type;
     if (x.type == rct::RCTType::Null)
       return;
-    if (!tools::equals_any(x.type, rct::RCTType::Full, rct::RCTType::Simple, rct::RCTType::Bulletproof, rct::RCTType::Bulletproof2, rct::RCTType::CLSAG))
+    if (!tools::equals_any(x.type, rct::RCTType::Full, rct::RCTType::Simple, rct::RCTType::Bulletproof, rct::RCTType::Bulletproof2, rct::RCTType::CLSAG, rct::RCTType::BulletproofPlus))
       throw boost::archive::archive_exception(boost::archive::archive_exception::other_exception, "Unsupported rct type");
     // a & x.message; message is not serialized, as it can be reconstructed from the tx data
     // a & x.mixRing; mixRing is not serialized, as it can be reconstructed from the offsets

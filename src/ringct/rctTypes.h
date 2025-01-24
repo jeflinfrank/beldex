@@ -306,7 +306,9 @@ namespace rct {
     inline bool is_rct_simple(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
     inline bool is_rct_bulletproof(RCTType type) { return tools::equals_any(type, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
     inline bool is_rct_borromean(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Full); }
-    inline bool is_rct_bulletproof_plus(RCTType type) {return tools::equals_any(type, RCTType::BulletproofPlus); }
+    inline bool is_rct_bulletproof_plus(RCTType type) { return tools::equals_any(type, RCTType::BulletproofPlus); }
+    inline bool is_rct_clsag(RCTType type) { return tools::equals_any(type, RCTType::CLSAG, RCTType::BulletproofPlus); }
+
     enum class RangeProofType : uint8_t { Borromean = 0, Bulletproof = 1, MultiOutputBulletproof = 2, PaddedBulletproof = 3 };
     struct RCTConfig {
       RangeProofType range_proof_type;
