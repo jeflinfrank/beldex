@@ -303,7 +303,7 @@ namespace rct {
       BulletproofPlus = 6,
     };
 
-    inline bool is_rct_simple(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
+    inline bool is_rct_simple(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG, RCTType::BulletproofPlus); }
     inline bool is_rct_bulletproof(RCTType type) { return tools::equals_any(type, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG); }
     inline bool is_rct_borromean(RCTType type) { return tools::equals_any(type, RCTType::Simple, RCTType::Full); }
     inline bool is_rct_bulletproof_plus(RCTType type) { return tools::equals_any(type, RCTType::BulletproofPlus); }
@@ -330,7 +330,7 @@ namespace rct {
             field_varint(ar, "type", type);
             if (type == RCTType::Null)
                 return;
-            if (!tools::equals_any(type, RCTType::Full, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG))
+            if (!tools::equals_any(type, RCTType::Full, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG, RCTType::BulletproofPlus))
                 throw std::invalid_argument{"invalid ringct type"};
 
             field_varint(ar, "txnFee", txnFee);
@@ -347,7 +347,7 @@ namespace rct {
 
             {
                 auto arr = start_array(ar, "ecdhInfo", ecdhInfo, outputs);
-                if (tools::equals_any(type, RCTType::Bulletproof2, RCTType::CLSAG))
+                if (tools::equals_any(type, RCTType::Bulletproof2, RCTType::CLSAG, RCTType::BulletproofPlus))
                 {
                     for (auto& e : ecdhInfo) {
                         auto obj = arr.element().begin_object();
@@ -382,9 +382,24 @@ namespace rct {
         {
             if (type == RCTType::Null)
                 return;
-            if (!tools::equals_any(type, RCTType::Full, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG))
+            if (!tools::equals_any(type, RCTType::Full, RCTType::Simple, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG, RCTType::BulletproofPlus))
                 throw std::invalid_argument{"invalid ringct type"};
-            if (rct::is_rct_bulletproof(type))
+
+            if (rct::is_rct_bulletproof_plus(type))
+            {
+                uint32_t nbp = bulletproofs_plus.size();
+                field_varint(ar, "nbp", nbp);
+                if (nbp > outputs)
+                    throw std::invalid_argument{"too many bulletproofs_plus"};
+
+                auto arr = start_array(ar, "bpp", bulletproofs_plus, nbp);
+                for (auto& b : bulletproofs_plus)
+                    value(arr.element(), b);
+
+                if (auto n_max = n_bulletproof_plus_max_amounts(bulletproofs_plus); n_max < outputs)
+                    throw std::invalid_argument{"invalid bulletproofs_plus: n_max (" + std::to_string(n_max) + ") < outputs (" + std::to_string(outputs) + ")"};
+            }
+            else if (rct::is_rct_bulletproof(type))
             {
                 uint32_t nbp = bulletproofs.size();
                 if (tools::equals_any(type, RCTType::Bulletproof2, RCTType::CLSAG))
@@ -408,7 +423,7 @@ namespace rct {
                     value(arr.element(), s);
             }
 
-            if (type == RCTType::CLSAG)
+            if (type == RCTType::CLSAG || type == RCTType::BulletproofPlus)
             {
                 auto arr = start_array(ar, "CLSAGs", CLSAGs, inputs);
 
@@ -466,7 +481,7 @@ namespace rct {
                     }
                 }
             }
-            if (tools::equals_any(type, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG))
+            if (tools::equals_any(type, RCTType::Bulletproof, RCTType::Bulletproof2, RCTType::CLSAG, RCTType::BulletproofPlus))
             {
                 auto arr = start_array(ar, "pseudoOuts", pseudoOuts, inputs);
                 for (auto& o : pseudoOuts)
@@ -480,12 +495,12 @@ namespace rct {
 
         keyV& get_pseudo_outs()
         {
-          return rct::is_rct_bulletproof(type) ? p.pseudoOuts : pseudoOuts;
+          return ( type == RCTType::Bulletproof || type == RCTType::Bulletproof2 || type == RCTType::CLSAG || type == RCTType::BulletproofPlus) ? p.pseudoOuts : pseudoOuts;
         }
 
         keyV const& get_pseudo_outs() const
         {
-          return rct::is_rct_bulletproof(type) ? p.pseudoOuts : pseudoOuts;
+          return (type == RCTType::Bulletproof || type == RCTType::Bulletproof2 || type == RCTType::CLSAG || type == RCTType::BulletproofPlus) ? p.pseudoOuts : pseudoOuts;
         }
     };
 
@@ -645,3 +660,4 @@ VARIANT_TAG(rct::Bulletproof, "rct_bulletproof", 0x9c);
 VARIANT_TAG(rct::multisig_kLRki, "rct_multisig_kLR", 0x9d);
 VARIANT_TAG(rct::multisig_out, "rct_multisig_out", 0x9e);
 VARIANT_TAG(rct::clsag, "rct_clsag", 0x9f);
+VARIANT_TAG(rct::BulletproofPlus, "rct_bulletproof_plus", 0xa0);
