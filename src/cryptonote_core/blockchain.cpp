@@ -3152,12 +3152,12 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
   }
 
   // forbid bulletproofs
-  if (hf_version > HF_VERSION_BULLETPROOF_PLUS) {
+  if (hf_version >= HF_VERSION_BULLETPROOF_PLUS) {
     if (tx.version >= txversion::v4_tx_types && tx.is_transfer()) {
-      const bool bulletproof = rct::is_rct_bulletproof(tx.rct_signatures.type);
-      if (bulletproof)
+      const bool clsag = (tx.rct_signatures.type == rct::RCTType::CLSAG);
+      if (clsag)
       {
-        MERROR_VER("Bulletproof range proofs are not allowed after v" + std::to_string(HF_VERSION_BULLETPROOF_PLUS));
+        MERROR_VER("CLSAGs are not allowed after v" + std::to_string(HF_VERSION_BULLETPROOF_PLUS));
         tvc.m_invalid_output = true;
         return false;
       }
