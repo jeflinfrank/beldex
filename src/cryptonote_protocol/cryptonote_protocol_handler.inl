@@ -2604,8 +2604,14 @@ skip:
   bool t_cryptonote_protocol_handler<t_core>::relay_transactions(NOTIFY_NEW_TRANSACTIONS::request& arg, cryptonote_connection_context& exclude_context)
   {
     MTRACE("relay_transactions");
+    
+    const bool hide_tx_broadcast = exclude_context.m_remote_address.get_zone() == epee::net_utils::zone::invalid;
+
+    if (hide_tx_broadcast)
+      MDEBUG("Attempting to conceal origin of tx via anonymity network connection(s)");
 
     // no check for success, so tell core they're relayed unconditionally and snag a copy of the
+    const bool pad_transactions = m_core.pad_transactions() || hide_tx_broadcast;
     // hash so that we can look up any associated flash data we should include.
 
     std::vector<crypto::hash> relayed_txes;
