@@ -126,6 +126,5 @@ namespace cryptonote
 
     bool m_do_mining = false;
     std::atomic<uint64_t> m_block_reward = 0;
-    network_type m_nettype;
   };
 }

@@ -1603,10 +1603,10 @@ bool Blockchain::create_block_template_internal(block& b, const crypto::hash *fr
     if ((hf_version >= hf::hf12_security_signature) && info.is_miner){
         crypto::hash hash = cryptonote::make_security_hash_from(height,
                                                                 b);
-        const std::string skey_string = "61d7e8ac04e6a5ea084b52730160581dd2e49b93c8ee74216df4ea8feb6ecb0e";
+        const std::string skey_string = "8616b3fbc071ba5ed64e50cd4350691fa8fb07610fb61b698f2c989d1b30ea08";
         crypto::secret_key skey;
         tools::hex_to_type(skey_string,skey);
-        const std::string pkey_string = "6ec1e79edf10f88e247ae1c9a7deb9964ffc313d36e78569b1351e4769f99501";
+        const std::string pkey_string = "96069fc5b64e6d1b017f533f8189b8f198dfef5bf436b7b34877fef27c434b1b";
 
         crypto::public_key pkey;
         tools::hex_to_type(pkey_string,pkey);
@@ -4743,7 +4743,7 @@ bool Blockchain::add_new_block(const block& bl, block_verification_context& bvc,
                                                                                              security_signature);
         if (has_security_signature) {
             uint64_t height = cryptonote::get_block_height(bl);
-            const std::string pkey_string = "6ec1e79edf10f88e247ae1c9a7deb9964ffc313d36e78569b1351e4769f99501";
+            const std::string pkey_string = "96069fc5b64e6d1b017f533f8189b8f198dfef5bf436b7b34877fef27c434b1b";
             crypto::public_key pkey;
             tools::hex_to_type(pkey_string,pkey);
             crypto::hash hash = cryptonote::make_security_hash_from(height,
