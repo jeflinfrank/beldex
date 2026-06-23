@@ -126,7 +126,7 @@ namespace
             handler_(std::addressof(endpoint_), connections, context_)
         {
             using base_type = epee::net_utils::connection_context_base;
-            static_cast<base_type&>(context_) = base_type{random_generator(), {}, is_incoming};
+            static_cast<base_type&>(context_) = base_type{random_generator(), {}, is_incoming, false};
             handler_.after_init_connection();
         }
 
