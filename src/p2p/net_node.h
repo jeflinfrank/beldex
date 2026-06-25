@@ -112,10 +112,12 @@ namespace nodetool
   template<class base_type>
   struct p2p_connection_context_t: base_type //t_payload_net_handler::connection_context //public net_utils::connection_context_base
   {
-    p2p_connection_context_t(): peer_id(0), m_in_timedsync(false) {}
+    p2p_connection_context_t(): peer_id(0), m_in_timedsync(false), m_rpc_port(0), m_rpc_credits_per_hash(0) {}
 
     peerid_type peer_id;
     bool m_in_timedsync;
+    uint16_t m_rpc_port;
+    uint32_t m_rpc_credits_per_hash;    
     std::set<epee::net_utils::network_address> sent_addresses;
   };
 

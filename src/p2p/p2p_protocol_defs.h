@@ -91,6 +91,8 @@ namespace nodetool
     epee::connection_id_t network_id;
     uint32_t my_port;
     peerid_type peer_id;
+    uint16_t rpc_port;
+    uint32_t rpc_credits_per_hash;    
 
     KV_MAP_SERIALIZABLE
   };
